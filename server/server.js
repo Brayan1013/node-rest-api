@@ -2,6 +2,8 @@ require('./config');
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const validateToken = require('./auth/midleware');
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -9,24 +11,21 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
 
-app.get('/', (req, res) => {
-  res.send('Hello World');
-});
+//calling the routes
+app.use(require('./routes'));
 
-app.post('/:id', (req, res) => {
-  const id = req.params.id;
-  const body = req.body;
+//conecting to the database
+const run = async () => {
+  await mongoose.connect(process.env.DATABASE, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+  });
 
-  if (body.name === undefined) {
-    res.status(400).json({
-      message: 'Fuck you',
-    });
-  } else {
-    res.json({
-      body,
-    });
-  }
-});
+  console.log('Successfull conection');
+};
+
+run().catch((error) => console.log(error));
 
 app.listen(process.env.PORT, () => {
   console.log(`Escuchando el puerto ${process.env.PORT}`);
